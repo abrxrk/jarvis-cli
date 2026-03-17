@@ -1,8 +1,14 @@
 #!/usr/bin/env node
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 import { Command } from "commander";
 import chalk from "chalk";
 const program = new Command();
+import { loginCommand } from "../commands/auth/login.js";
 
 // High-tech ASCII Art Banner
 const banner = `
@@ -38,9 +44,14 @@ program
   .version("1.0.0")
   .action(() => {
     showWelcome();
+  })
+  .hook('preAction', () => {
+    console.log();
+    console.log(banner);
+    console.log(chalk.gray("Your AI Assistant CLI\n"));
   });
 
-// program.addCommand(login);
+program.addCommand(loginCommand);
 // program.addCommand(logout);
 
 program.parse(process.argv);
