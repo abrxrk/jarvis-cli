@@ -1,3 +1,11 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+dotenv.config({
+  path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env"),
+});
+
 import express from "express";
 import { auth } from "./lib/auth.js";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";

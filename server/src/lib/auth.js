@@ -17,7 +17,7 @@ export const auth = betterAuth({
   },
   plugins: [
     deviceAuthorization({
-      verificationUri: "/device",
+      verificationUri: "http://localhost:3000/device",
     }),
   ],
 });
