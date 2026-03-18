@@ -27,7 +27,10 @@ function DeviceAuthorizationContent() {
   const initialCode = searchParams.get("user_code") || "";
   const [userCode, setUserCode] = useState(initialCode);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isDenying, setIsDenying] = useState(false);
+  const [isRedirectingToLogin, setIsRedirectingToLogin] = useState(false);
   const [step, setStep] = useState<"input" | "login" | "approve">("input");
   const hasAttemptedAutoVerify = useRef(false);
 
@@ -35,7 +38,7 @@ function DeviceAuthorizationContent() {
   const { data, isPending } = authClient.useSession();
 
   const verifyCode = async (code: string) => {
-    setIsLoading(true);
+    setIsVerifying(true);
     setError(null);
 
     try {
@@ -43,7 +46,6 @@ function DeviceAuthorizationContent() {
 
       if (!formattedCode) {
         setError("Please enter a device code");
-        setIsLoading(false);
         return;
       }
 
@@ -57,7 +59,6 @@ function DeviceAuthorizationContent() {
         if (!data?.session) {
           setUserCode(formattedCode);
           setStep("login");
-          setIsLoading(false);
           return;
         }
 
@@ -68,7 +69,7 @@ function DeviceAuthorizationContent() {
     } catch (err) {
       setError("Invalid or expired code. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsVerifying(false);
     }
   };
 
@@ -86,7 +87,8 @@ function DeviceAuthorizationContent() {
   };
 
   const handleApprove = async () => {
-    setIsLoading(true);
+    setIsApproving(true);
+    setError(null);
     try {
       await authClient.device.approve({
         userCode: userCode,
@@ -94,12 +96,13 @@ function DeviceAuthorizationContent() {
       router.push("/");
     } catch (error) {
       setError("Failed to approve device");
-      setIsLoading(false);
+      setIsApproving(false);
     }
   };
 
   const handleDeny = async () => {
-    setIsLoading(true);
+    setIsDenying(true);
+    setError(null);
     try {
       await authClient.device.deny({
         userCode: userCode,
@@ -107,7 +110,25 @@ function DeviceAuthorizationContent() {
       router.push("/");
     } catch (error) {
       setError("Failed to deny device");
-      setIsLoading(false);
+      setIsDenying(false);
+    }
+  };
+
+  const handleSocialSignIn = async () => {
+    if (isRedirectingToLogin) {
+      return;
+    }
+
+    setIsRedirectingToLogin(true);
+
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: `http://localhost:3000/device?user_code=${userCode}`,
+      });
+    } catch {
+      setIsRedirectingToLogin(false);
+      setError("Failed to continue with GitHub");
     }
   };
 
@@ -147,15 +168,20 @@ function DeviceAuthorizationContent() {
               variant={"outline"}
               className="w-full bg-white text-white hover:bg-zinc-200 hover:text-white border-0 transition-colors h-12 text-lg font-medium"
               type="button"
-              onClick={() =>
-                authClient.signIn.social({
-                  provider: "github",
-                  callbackURL: `http://localhost:3000/device?user_code=${userCode}`,
-                })
-              }
+              onClick={handleSocialSignIn}
+              disabled={isRedirectingToLogin}
             >
-              <GithubIcon className="size-5 mr-2" />
-              Continue with GitHub
+              {isRedirectingToLogin ? (
+                <>
+                  <Spinner className="size-5 mr-2" />
+                  Continuing...
+                </>
+              ) : (
+                <>
+                  <GithubIcon className="size-5 mr-2" />
+                  Continue with GitHub
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -200,18 +226,36 @@ function DeviceAuthorizationContent() {
               variant="outline"
               className="w-full flex items-center justify-center border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white h-12"
               onClick={handleDeny}
-              disabled={isLoading}
+              disabled={isApproving || isDenying}
             >
-              <XCircle className="w-4 h-4 mr-2" />
-              Deny Access
+              {isDenying ? (
+                <>
+                  <Spinner className="w-4 h-4 mr-2" />
+                  Denying...
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Deny Access
+                </>
+              )}
             </Button>
             <Button
               className="w-full flex items-center justify-center bg-white text-black hover:bg-zinc-200 h-12"
               onClick={handleApprove}
-              disabled={isLoading}
+              disabled={isApproving || isDenying}
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Approve Device
+              {isApproving ? (
+                <>
+                  <Spinner className="w-4 h-4 mr-2" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Approve Device
+                </>
+              )}
             </Button>
           </CardFooter>
         </Card>
@@ -255,9 +299,16 @@ function DeviceAuthorizationContent() {
             <Button
               type="submit"
               className="w-full h-12 text-lg font-medium bg-white text-black hover:bg-zinc-200"
-              disabled={isLoading || !userCode.trim()}
+              disabled={isVerifying || !userCode.trim()}
             >
-              {isLoading ? "Connecting..." : "Connect"}
+              {isVerifying ? (
+                <>
+                  <Spinner className="w-4 h-4 mr-2" />
+                  Connecting...
+                </>
+              ) : (
+                "Connect"
+              )}
             </Button>
           </form>
         </CardContent>

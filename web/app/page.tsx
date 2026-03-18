@@ -12,11 +12,27 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { data, isPending } = authClient.useSession();
   const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsSigningOut(true);
+
+    authClient.signOut({
+      fetchOptions: {
+        onError: () => setIsSigningOut(false),
+        onSuccess: () => router.push("/sign-in"),
+      },
+    });
+  };
 
   useEffect(() => {
     if (!isPending && !data?.session && !data?.user) {
@@ -85,17 +101,20 @@ export default function Home() {
           <Button
             variant="outline"
             className="w-full border-zinc-700 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors h-12"
-            onClick={() =>
-              authClient.signOut({
-                fetchOptions: {
-                  onError: (ctx) => console.log(ctx),
-                  onSuccess: () => router.push("/sign-in"),
-                },
-              })
-            }
+            onClick={handleSignOut}
+            disabled={isSigningOut}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            {isSigningOut ? (
+              <>
+                <Spinner className="w-4 h-4 mr-2" />
+                Signing Out...
+              </>
+            ) : (
+              <>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
