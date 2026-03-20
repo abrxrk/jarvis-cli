@@ -28,6 +28,13 @@ jarvis generate  # generate code
 
 JARVIS currently supports code generation only:
 
+## Future planned commands:- 
+
+- jarvis init project
+- jarvis build feature
+- jarvis fix bug
+- jarvis explain code
+
 ```bash
 My planned architecture-
 jarvis generate
