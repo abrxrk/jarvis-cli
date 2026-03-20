@@ -8,6 +8,7 @@ const program = new Command();
 import { login, whoami, logout } from "../commands/auth/login.js";
 import { model } from "../commands/ai/model.js";
 import { status } from "../commands/ai/status.js";
+import { generate } from "../commands/ai/generate.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Load .env before any other imports to ensure env vars are available
@@ -66,7 +67,6 @@ program
   .hook("preAction", () => {
     console.log();
     console.log(banner);
-    console.log(chalk.gray("Your AI Assistant CLI\n"));
   });
 
 program.addCommand(login);
@@ -74,6 +74,7 @@ program.addCommand(whoami);
 program.addCommand(logout);
 program.addCommand(model);
 program.addCommand(status);
+program.addCommand(generate);
 
 // List commands
 const listCommands = new Command("/")

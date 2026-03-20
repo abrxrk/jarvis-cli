@@ -18,29 +18,9 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "ai_config.json");
 // Major Gemini models available via Google AI Studio
 const GEMINI_MODELS = [
   {
-    id: "gemini-2.5-pro-preview-06-05",
-    name: "Gemini 2.5 Pro Preview",
-    description: "Latest preview with enhanced reasoning",
-    contextWindow: "1M tokens",
-    recommended: true,
-  },
-  {
-    id: "gemini-2.5-flash-preview-05-20",
-    name: "Gemini 2.5 Flash Preview",
-    description: "Fast and efficient for most tasks",
-    contextWindow: "1M tokens",
-    recommended: true,
-  },
-  {
     id: "gemini-2.0-flash",
     name: "Gemini 2.0 Flash",
     description: "Stable fast model for production",
-    contextWindow: "1M tokens",
-  },
-  {
-    id: "gemini-2.0-flash-lite",
-    name: "Gemini 2.0 Flash Lite",
-    description: "Lightweight and cost-effective",
     contextWindow: "1M tokens",
   },
   {
@@ -48,18 +28,6 @@ const GEMINI_MODELS = [
     name: "Gemini 1.5 Pro",
     description: "Stable pro model with long context",
     contextWindow: "2M tokens",
-  },
-  {
-    id: "gemini-1.5-flash",
-    name: "Gemini 1.5 Flash",
-    description: "Fast stable model",
-    contextWindow: "1M tokens",
-  },
-  {
-    id: "gemini-1.5-flash-8b",
-    name: "Gemini 1.5 Flash 8B",
-    description: "Smallest efficient model",
-    contextWindow: "1M tokens",
   },
   {
     id: "gemini-1.0-pro",
