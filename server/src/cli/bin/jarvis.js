@@ -2,15 +2,16 @@
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Load .env before any other imports to ensure env vars are available
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
-
 import { Command } from "commander";
 import chalk from "chalk";
 const program = new Command();
 import { login, whoami, logout } from "../commands/auth/login.js";
+import { model } from "../commands/ai/model.js";
+import { status } from "../commands/ai/status.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Load .env before any other imports to ensure env vars are available
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 
 // High-tech ASCII Art Banner
 const banner = `
@@ -44,7 +45,7 @@ const showWelcome = () => {
     `  ${chalk.yellow("logout")}   ${chalk.gray("Securely terminate your session")}`,
   );
   console.log(
-    `  ${chalk.white("--help")}   ${chalk.gray("Display manual and available options")}`,
+    `  ${chalk.white("/")}        ${chalk.gray("List all available commands")}`,
   );
   console.log();
   console.log(
@@ -71,5 +72,26 @@ program
 program.addCommand(login);
 program.addCommand(whoami);
 program.addCommand(logout);
+program.addCommand(model);
+program.addCommand(status);
+
+// List commands
+const listCommands = new Command("/")
+  .description("List all available commands")
+  .action(() => {
+    console.log();
+    console.log(chalk.cyan.bold("  AVAILABLE COMMANDS:"));
+    console.log();
+    program.commands
+      .filter((cmd) => cmd.name() && cmd.name() !== "/")
+      .forEach((cmd) => {
+        console.log(
+          `  ${chalk.green(cmd.name().padEnd(10))} ${chalk.gray(cmd.description())}`,
+        );
+      });
+    console.log();
+  });
+
+program.addCommand(listCommands);
 
 program.parse(process.argv);

@@ -29,7 +29,16 @@ jarvis generate  # generate code
 JARVIS currently supports code generation only:
 
 ```bash
-jarvis generate "create an express server"
+My planned architecture-
+jarvis generate
+   ↓
+AI (generateText)
+   ↓
+JSON (files[])
+   ↓
+parse
+   ↓
+fs.writeFile
 ```
 
 ### Features:
