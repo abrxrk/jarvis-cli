@@ -18,8 +18,8 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "ai_config.json");
 // Major Gemini models available via Google AI Studio
 const GEMINI_MODELS = [
   {
-    id: "gemini-2.0-flash",
-    name: "Gemini 2.0 Flash",
+    id: "gemini-2.5-flash",
+    name: "Gemini 2.5 Flash",
     description: "Stable fast model for production",
     contextWindow: "1M tokens",
   },
@@ -37,9 +37,7 @@ const GEMINI_MODELS = [
   },
 ];
 
-// ============================================
-// CONFIG MANAGEMENT
-// ============================================
+// config management
 
 export async function getConfig() {
   try {
@@ -79,9 +77,7 @@ export async function getApiKey(provider) {
   return config?.apiKey || null;
 }
 
-// ============================================
-// MODEL COMMAND ACTION
-// ============================================
+// model command action
 
 export async function modelAction() {
   intro(chalk.bold("🤖 Select AI Model"));
@@ -187,9 +183,7 @@ export async function modelAction() {
   }
 }
 
-// ============================================
-// COMMANDER SETUP
-// ============================================
+// commander setup
 
 export const model = new Command("model")
   .description("Select an AI model for Jarvis to use")

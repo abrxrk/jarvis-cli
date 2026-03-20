@@ -6,10 +6,9 @@ import { generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { getConfig } from "./model.js";
+import yoctoSpinner from "yocto-spinner";
 
-// ============================================
-// SCHEMA
-// ============================================
+// schema
 
 const GenerationSchema = z.object({
   projectName: z.string().describe("Kebab-case project/folder name"),
@@ -27,9 +26,7 @@ const GenerationSchema = z.object({
     .describe("Ordered shell commands to install deps and run the project"),
 });
 
-// ============================================
-// HELPERS
-// ============================================
+// helpers
 
 function buildModel(config) {
   const { provider, model, apiKey } = config;
@@ -82,9 +79,7 @@ async function writeFiles(baseDir, projectName, files) {
   return projectDir;
 }
 
-// ============================================
-// CORE ACTION
-// ============================================
+// core action
 
 async function generateAction(prompt) {
   const config = await getConfig();
@@ -106,6 +101,8 @@ async function generateAction(prompt) {
 
   const model = buildModel(config);
 
+  const spinner = yoctoSpinner({ text: "Generating project..." }).start();
+
   let result;
   try {
     result = await generateObject({
@@ -119,15 +116,17 @@ STRICT RULES:
 1. Output EVERY file needed — do not omit any file.
 2. Each file must have its full content with zero placeholders or TODO comments.
 3. Use separate files for separate concerns (components, utils, routes, etc.).
-4. Include package.json with exact dependency versions where applicable.
+4. Include package.json ONLY if the project uses Node.js or a JS/TS build tool (e.g. React, Vue, Express). Do NOT generate package.json for plain HTML/CSS/JS projects that run directly in the browser without a build step.
 5. Include a README.md with clear setup instructions.
 6. Add .gitignore if the project uses Node.js, Python, or similar runtimes.
 7. Write clean, production-quality code with proper error handling.
 8. Use modern language features and best practices.
 9. All import paths must be correct relative to the file they appear in.
-10. setupCommands must be the exact shell commands a developer runs after cloning, in order.`,
+10. setupCommands must be the exact shell commands a developer runs after cloning, in order. Do NOT include echo commands or informational messages — only real executable commands (e.g. npm install, npm start).
+11. File content MUST preserve proper line breaks and indentation — never collapse multiple lines into a single line. Each line of code must be a separate line in the content string.`,
     });
   } catch (err) {
+    spinner.error("Generation failed");
     const msg = err?.message || "";
     if (
       err?.statusCode === 429 ||
@@ -140,6 +139,7 @@ STRICT RULES:
           "   Fix: enable billing or use a key from a different Google account/project.",
         ),
       );
+      console.log(err);
     } else if (err?.statusCode === 404 || msg.includes("not found")) {
       console.error(
         chalk.red(`\n❌ Model "${config.model}" not found or not supported.`),
@@ -152,6 +152,8 @@ STRICT RULES:
     }
     process.exit(1);
   }
+
+  spinner.success("Project generated!");
 
   const { projectName, description, files, setupCommands } = result.object;
 
@@ -175,9 +177,7 @@ STRICT RULES:
   }
 }
 
-// ============================================
-// COMMANDER SETUP
-// ============================================
+// commander setup
 
 export const generate = new Command("generate")
   .description("Generate a project from a natural-language prompt")

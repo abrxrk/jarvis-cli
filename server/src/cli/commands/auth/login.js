@@ -22,9 +22,7 @@ const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CONFIG_DIR = path.join(os.homedir(), ".better-auth");
 const TOKEN_FILE = path.join(CONFIG_DIR, "token.json");
 
-// ============================================
-// TOKEN MANAGEMENT (Export these for use in other commands)
-// ============================================
+// token management (export these for use in other commands)
 
 export async function getStoredToken() {
   try {
@@ -106,9 +104,7 @@ export async function requireAuth() {
   return token;
 }
 
-// ============================================
-// LOGIN COMMAND
-// ============================================
+// login command
 
 export async function loginAction(opts) {
   const options = z
@@ -345,9 +341,7 @@ async function pollForToken(authClient, deviceCode, clientId, initialInterval) {
   });
 }
 
-// ============================================
-// LOGOUT COMMAND
-// ============================================
+// logout command
 
 export async function logoutAction() {
   intro(chalk.bold("👋 Logout"));
@@ -378,9 +372,7 @@ export async function logoutAction() {
   }
 }
 
-// ============================================
-// WHOAMI COMMAND
-// ============================================
+// whoami command
 
 export async function whoamiAction(opts) {
   const token = await requireAuth();
@@ -389,21 +381,32 @@ export async function whoamiAction(opts) {
     process.exit(1);
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      sessions: {
-        some: {
-          token: token.access_token,
+  const spinner = yoctoSpinner({ text: "Fetching user info..." }).start();
+
+  let user;
+  try {
+    user = await prisma.user.findFirst({
+      where: {
+        sessions: {
+          some: {
+            token: token.access_token,
+          },
         },
       },
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    });
+  } catch (err) {
+    spinner.error("Failed to fetch user info");
+    console.error(chalk.red(`\n❌ ${err.message}\n`));
+    process.exit(1);
+  }
+
+  spinner.success("Done");
 
   // Output user session info
   console.log(
@@ -413,9 +416,7 @@ export async function whoamiAction(opts) {
   );
 }
 
-// ============================================
-// COMMANDER SETUP
-// ============================================
+// commander setup
 
 export const login = new Command("login")
   .description("Login to Better Auth")

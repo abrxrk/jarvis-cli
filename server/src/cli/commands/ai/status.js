@@ -2,9 +2,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import { getConfig } from "./model.js";
 
-// ============================================
-// STATUS COMMAND ACTION
-// ============================================
+// status command action
 
 export async function statusAction() {
   console.log();
@@ -62,9 +60,7 @@ export async function statusAction() {
   console.log();
 }
 
-// ============================================
-// COMMANDER SETUP
-// ============================================
+// commander setup
 
 export const status = new Command("status")
   .description("Check AI configuration status")
